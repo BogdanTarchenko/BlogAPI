@@ -45,7 +45,10 @@ public class UsersController : ControllerBase
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
-        await _userService.LogoutAsync();
+        var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        if (token == null) return BadRequest();
+        
+        await _userService.LogoutAsync(token);
         return Ok();
     }
     

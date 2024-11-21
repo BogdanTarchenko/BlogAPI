@@ -76,6 +76,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<UserRegisterModelValidator>();
 
+builder.Services.AddScoped<IBannedTokenRepository, BannedTokenRepository>();
+builder.Services.AddHostedService<TokenCleanupService>();
+builder.Services.AddTransient<TokenValidationMiddleware>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -88,6 +92,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<TokenValidationMiddleware>();
 app.MapControllers();
 
 app.Run();

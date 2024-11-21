@@ -13,6 +13,7 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IJwtService _jwtService;
+    private readonly IBannedTokenRepository _bannedTokenRepository;
     
     private readonly IValidator<UserRegisterModel> _userRegisterValidator;
     private readonly IValidator<LoginCredentials> _loginCredentialsValidator;
@@ -23,13 +24,15 @@ public class UserService : IUserService
         IJwtService jwtService,
         IValidator<UserRegisterModel> userRegisterValidator,
         IValidator<LoginCredentials> loginCredentialsValidator,
-        IValidator<UserEditModel> userEditValidator)
+        IValidator<UserEditModel> userEditValidator,
+        IBannedTokenRepository bannedTokenRepository)
     {
         _userRepository = userRepository;
         _jwtService = jwtService;
         _userRegisterValidator = userRegisterValidator;
         _loginCredentialsValidator = loginCredentialsValidator;
         _userEditValidator = userEditValidator;
+        _bannedTokenRepository = bannedTokenRepository;
     }
     public async Task<TokenResponse> RegisterAsync(UserRegisterModel model)
     {
@@ -90,9 +93,9 @@ public class UserService : IUserService
         };
     }
 
-    public Task LogoutAsync()
+    public async Task LogoutAsync(string token)
     {
-        return Task.CompletedTask;
+        await _bannedTokenRepository.AddAsync(token);
     }
 
     public async Task<UserDto> GetProfileAsync(Guid userId)
