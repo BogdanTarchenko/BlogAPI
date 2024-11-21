@@ -9,9 +9,15 @@
     <ItemGroup>
       <Folder Include="Common\Exceptions\" />
       <Folder Include="Common\Interfaces\" />
-      <Folder Include="Common\Models\" />
       <Folder Include="Services\" />
-      <Folder Include="Validators\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HitsBackend.Domain\HitsBackend.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentValidation" Version="11.11.0" />
     </ItemGroup>
 
 </Project>
