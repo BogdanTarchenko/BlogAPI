@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using HitsBackend.Domain.Enums;
 
 namespace HitsBackend.Application.Common.Models;
