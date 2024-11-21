@@ -11,6 +11,7 @@ public class ApplicationDbContext : DbContext
     
     public DbSet<User> Users { get; set; }
     public DbSet<BannedToken> BannedTokens { get; set; }
+    public DbSet<Tag> Tags { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,14 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Token);
             entity.Property(e => e.ExpirationTime).IsRequired();
+        });
+        
+        modelBuilder.Entity<Tag>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.CreateTime).IsRequired();
+            entity.HasIndex(e => e.Name).IsUnique();
         });
     }
 }

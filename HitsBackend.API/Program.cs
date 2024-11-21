@@ -79,6 +79,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddValidatorsFromAssemblyContaining<UserRegisterModelValidator>();
 
 builder.Services.AddScoped<IBannedTokenRepository, BannedTokenRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<ITagService, TagService>();
+
 builder.Services.AddTransient<TokenValidationMiddleware>();
 
 builder.Services.Configure<QuartzSettings>(

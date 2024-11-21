@@ -15,4 +15,4 @@ public static class UserMapper
         BirthDate = user.BirthDate,
         PhoneNumber = user.PhoneNumber
     };
-} 
+}

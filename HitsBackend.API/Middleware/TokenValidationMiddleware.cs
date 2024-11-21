@@ -24,4 +24,4 @@ public class TokenValidationMiddleware : IMiddleware
 
         await next(context);
     }
-} 
+}

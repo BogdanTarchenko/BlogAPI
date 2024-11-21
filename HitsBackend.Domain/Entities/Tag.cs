@@ -1,6 +1,6 @@
 namespace HitsBackend.Domain.Entities;
 
-public class Token
+public class Tag
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
