@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistence.Context;
 using Infrastructure.Persistence.Repositories;
 using HitsBackend.Middleware;
+using Quartz;
+using Infrastructure.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,8 +79,29 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddValidatorsFromAssemblyContaining<UserRegisterModelValidator>();
 
 builder.Services.AddScoped<IBannedTokenRepository, BannedTokenRepository>();
-builder.Services.AddHostedService<TokenCleanupService>();
 builder.Services.AddTransient<TokenValidationMiddleware>();
+
+builder.Services.Configure<QuartzSettings>(
+    builder.Configuration.GetSection("QuartzSettings"));
+
+builder.Services.AddQuartz(q =>
+{
+    var settings = builder.Configuration
+        .GetSection("QuartzSettings:TokenCleanupJob")
+        .Get<TokenCleanupJobSettings>();
+        
+    var jobKey = new JobKey("TokenCleanupJob");
+    
+    q.AddJob<TokenCleanupJob>(opts => opts.WithIdentity(jobKey));
+    
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("TokenCleanupJob-trigger")
+        .WithCronSchedule(settings!.CronSchedule)
+    );
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

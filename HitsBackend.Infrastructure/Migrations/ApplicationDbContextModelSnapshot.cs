@@ -24,15 +24,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("HitsBackend.Domain.Entities.BannedToken", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Token")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.Property<DateTime>("ExpirationTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Token");
 
                     b.ToTable("BannedTokens");
                 });

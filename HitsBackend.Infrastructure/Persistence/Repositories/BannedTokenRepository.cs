@@ -2,6 +2,7 @@ using HitsBackend.Application.Common.Interfaces;
 using HitsBackend.Domain.Entities;
 using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -16,10 +17,13 @@ public class BannedTokenRepository : IBannedTokenRepository
 
     public async Task AddAsync(string token)
     {
+        var claims = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        var expirationTime = claims.ValidTo.ToUniversalTime();
+        
         var bannedToken = new BannedToken
         {
-            Id = Guid.NewGuid(),
-            Token = token
+            Token = token,
+            ExpirationTime = expirationTime
         };
         
         await _context.BannedTokens.AddAsync(bannedToken);
@@ -33,6 +37,11 @@ public class BannedTokenRepository : IBannedTokenRepository
 
     public async Task ClearAllAsync()
     {
-        await _context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"BannedTokens\"");
+        var expiredTokens = await _context.BannedTokens
+            .Where(t => t.ExpirationTime < DateTime.UtcNow)
+            .ToListAsync();
+        
+        _context.BannedTokens.RemoveRange(expiredTokens);
+        await _context.SaveChangesAsync();
     }
 }

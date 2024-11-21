@@ -27,8 +27,8 @@ public class ApplicationDbContext : DbContext
         
         modelBuilder.Entity<BannedToken>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Token).IsRequired();
+            entity.HasKey(e => e.Token);
+            entity.Property(e => e.ExpirationTime).IsRequired();
         });
     }
 }
