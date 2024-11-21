@@ -19,7 +19,8 @@ public class UserEditModelValidator : AbstractValidator<UserEditModel>
             .IsInEnum().WithMessage("Gender must be a valid gender");
         
         RuleFor(x => x.PhoneNumber)
-            .Matches(@"^\+?[1-9]\d{1,14}$").When(x => !string.IsNullOrEmpty(x.PhoneNumber))
-            .WithMessage("Invalid phone number");
+            .Matches(@"^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$")
+            .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
+            .WithMessage("Phone number must match format: +7 (XXX) XXX-XX-XX");
     }
 }
