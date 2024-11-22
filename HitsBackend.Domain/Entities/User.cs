@@ -12,4 +12,6 @@ public class User
     public Gender Gender { get; set; }
     public DateTime? BirthDate { get; set; }
     public string? PhoneNumber { get; set; }
+    public int PostsCount { get; set; } = 0;
+    public int LikesCount { get; set; } = 0;
 }

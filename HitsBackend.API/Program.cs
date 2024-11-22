@@ -106,6 +106,8 @@ builder.Services.AddQuartz(q =>
 
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
+builder.Services.AddScoped<IAuthorService, AuthorService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
