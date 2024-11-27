@@ -157,4 +157,34 @@ public class PostService : IPostService
         
         return post.Id;
     }
+
+    public async Task<PostFullDto> GetByIdAsync(Guid id)
+    {
+        var post = await _postRepository.GetByIdAsync(id)
+            ?? throw new NotFoundException(nameof(Post), id);
+
+        return new PostFullDto(
+            Id: post.Id,
+            CreateTime: post.CreateTime,
+            Title: post.Title,
+            Description: post.Description,
+            ReadingTime: post.ReadingTime,
+            Image: post.Image,
+            AuthorId: post.AuthorId,
+            Author: post.Author.FullName,
+            CommunityId: post.CommunityId,
+            CommunityName: post.CommunityName,
+            AddressId: post.AddressId,
+            Likes: post.Likes.Count,
+            HasLike: false, // TODO: Реализовать проверку лайка для авторизованного пользователя
+            CommentsCount: 0, // TODO: Реализовать подсчет комментариев
+            Tags: post.PostTags.Select(pt => new TagDto
+            {
+                Id = pt.Tag.Id,
+                Name = pt.Tag.Name,
+                CreateTime = pt.Tag.CreateTime
+            }).ToList(),
+            Comments: new List<CommentDto>() // TODO: Реализовать получение комментариев
+        );
+    }
 } 

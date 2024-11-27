@@ -51,4 +51,13 @@ public class PostController : ControllerBase
         var postId = await _postService.CreateAsync(Guid.Parse(userId), dto);
         return Ok(postId);
     }
+
+    /// <summary>
+    /// Get post by id
+    /// </summary>
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<PostFullDto>> GetById(Guid id)
+    {
+        return await _postService.GetByIdAsync(id);
+    }
 } 

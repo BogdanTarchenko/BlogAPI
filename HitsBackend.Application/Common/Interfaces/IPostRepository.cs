@@ -16,4 +16,6 @@ public interface IPostRepository
         int size = 5);
         
     Task<Post> CreateAsync(Post post);
+
+    Task<Post?> GetByIdAsync(Guid id);
 } 

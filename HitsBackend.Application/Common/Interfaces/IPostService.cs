@@ -16,4 +16,6 @@ public interface IPostService
         int size = 5);
         
     Task<Guid> CreateAsync(Guid userId, CreatePostDto dto);
+
+    Task<PostFullDto> GetByIdAsync(Guid id);
 } 

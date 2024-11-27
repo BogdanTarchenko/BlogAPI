@@ -81,4 +81,14 @@ public class PostRepository : IPostRepository
         await _context.SaveChangesAsync();
         return post;
     }
+
+    public async Task<Post?> GetByIdAsync(Guid id)
+    {
+        return await _context.Posts
+            .Include(p => p.Author)
+            .Include(p => p.PostTags)
+                .ThenInclude(pt => pt.Tag)
+            .Include(p => p.Likes)
+            .FirstOrDefaultAsync(p => p.Id == id);
+    }
 } 
