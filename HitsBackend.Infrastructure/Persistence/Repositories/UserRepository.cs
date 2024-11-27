@@ -43,4 +43,14 @@ public class UserRepository : IUserRepository
             .OrderByDescending(u => u.CreateTime)
             .ToListAsync();
     }
+    
+    public async Task IncrementPostsCountAsync(Guid userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.PostsCount++;
+            await _context.SaveChangesAsync();
+        }
+    }
 }

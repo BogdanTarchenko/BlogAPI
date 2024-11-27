@@ -10,12 +10,12 @@ public class CreatePostDtoValidator : AbstractValidator<CreatePostDto>
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required")
             .MinimumLength(5).WithMessage("Title must be at least 5 characters")
-            .MaximumLength(1000).WithMessage("Title must not exceed 1000 characters");
+            .MaximumLength(1000).WithMessage("Title must be less than 1000 characters");
 
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Description is required")
             .MinimumLength(5).WithMessage("Description must be at least 5 characters")
-            .MaximumLength(5000).WithMessage("Description must not exceed 5000 characters");
+            .MaximumLength(5000).WithMessage("Description must be less than 5000 characters");
 
         RuleFor(x => x.ReadingTime)
             .GreaterThan(0).WithMessage("Reading time must be greater than 0");
@@ -24,7 +24,7 @@ public class CreatePostDtoValidator : AbstractValidator<CreatePostDto>
             .Must(BeAValidUrl).When(x => !string.IsNullOrEmpty(x.Image))
             .WithMessage("Image must be a valid URL")
             .MaximumLength(1000).When(x => !string.IsNullOrEmpty(x.Image))
-            .WithMessage("Image URL must not exceed 1000 characters");
+            .WithMessage("Image URL must be less than 1000 characters");
 
         RuleFor(x => x.Tags)
             .NotEmpty().WithMessage("At least one tag is required");

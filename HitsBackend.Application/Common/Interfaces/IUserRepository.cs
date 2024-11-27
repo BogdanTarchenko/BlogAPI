@@ -9,4 +9,5 @@ public interface IUserRepository
     Task<User> CreateAsync(User user);
     Task UpdateAsync(User user);
     Task<List<User>> GetAllWithStatsAsync();
+    Task IncrementPostsCountAsync(Guid userId);
 }
