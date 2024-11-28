@@ -27,11 +27,26 @@ public class CreatePostDtoValidator : AbstractValidator<CreatePostDto>
             .WithMessage("Image URL must be less than 1000 characters");
 
         RuleFor(x => x.Tags)
-            .NotEmpty().WithMessage("At least one tag is required");
+            .NotEmpty().WithMessage("At least one tag is required")
+            .ForEach(tag => tag.Must(BeAValidGuid).WithMessage("Each tag must be a valid GUID"));
+
+        RuleFor(x => x.AddressId)
+            .Must(BeAValidGuid).When(x => x.AddressId.HasValue)
+            .WithMessage("AddressId must be a valid GUID");
     }
 
     private static bool BeAValidUrl(string? url)
     {
         return url != null && Uri.TryCreate(url, UriKind.Absolute, out _);
     }
-} 
+
+    private static bool BeAValidGuid(Guid? id)
+    {
+        return id == null || id != Guid.Empty;
+    }
+
+    private static bool BeAValidGuid(Guid id)
+    {
+        return id != Guid.Empty;
+    }
+}

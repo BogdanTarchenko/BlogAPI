@@ -1,3 +1,4 @@
+using FluentValidation;
 using HitsBackend.Application.Common.Exceptions;
 using HitsBackend.Application.Common.Interfaces;
 using HitsBackend.Application.Common.Models;
@@ -9,11 +10,17 @@ public class CommentService : ICommentService
 {
     private readonly ICommentRepository _commentRepository;
     private readonly IPostRepository _postRepository;
+    
+    private readonly IValidator<CreateCommentDto> _createCommentValidator;
+    private readonly IValidator<UpdateCommentDto> _updateCommentValidator;
 
-    public CommentService(ICommentRepository commentRepository, IPostRepository postRepository)
+    public CommentService(ICommentRepository commentRepository, IPostRepository postRepository,
+        IValidator<CreateCommentDto> createCommentValidator, IValidator<UpdateCommentDto> updateCommentValidator)
     {
         _commentRepository = commentRepository;
         _postRepository = postRepository;
+        _createCommentValidator = createCommentValidator;
+        _updateCommentValidator = updateCommentValidator;
     }
 
     public async Task DeleteAsync(Guid id, Guid userId)
@@ -49,6 +56,12 @@ public class CommentService : ICommentService
 
     public async Task UpdateAsync(Guid id, UpdateCommentDto dto, Guid userId)
     {
+        var validationResult = await _updateCommentValidator.ValidateAsync(dto);
+        if (!validationResult.IsValid)
+        {
+            throw new FluentValidation.ValidationException(validationResult.Errors);
+        }
+        
         var comment = await _commentRepository.GetByIdAsync(id);
         if (comment == null)
         {
@@ -103,6 +116,12 @@ public class CommentService : ICommentService
 
     public async Task AddCommentToPostAsync(Guid postId, CreateCommentDto dto, Guid authorId)
     {
+        var validationResult = await _createCommentValidator.ValidateAsync(dto);
+        if (!validationResult.IsValid)
+        {
+            throw new FluentValidation.ValidationException(validationResult.Errors);
+        }
+        
         var post = await _postRepository.GetByIdAsync(postId);
         if (post == null)
         {
