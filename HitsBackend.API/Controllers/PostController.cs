@@ -85,7 +85,7 @@ public class PostController : ControllerBase
     /// <summary>
     /// Add like to concrete post
     /// </summary>
-    [HttpPost("{id:guid}/like")]
+    [HttpPost("{postId:guid}/like")]
     [Authorize]
     public async Task<IActionResult> AddLike(Guid id)
     {
@@ -99,7 +99,7 @@ public class PostController : ControllerBase
     /// <summary>
     /// Delete like from concrete post
     /// </summary>
-    [HttpDelete("{id:guid}/like")]
+    [HttpDelete("{postId:guid}/like")]
     [Authorize]
     public async Task<IActionResult> RemoveLike(Guid id)
     {
