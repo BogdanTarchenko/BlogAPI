@@ -21,4 +21,6 @@ public class Post
     
     public ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
     public ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
+    
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 } 

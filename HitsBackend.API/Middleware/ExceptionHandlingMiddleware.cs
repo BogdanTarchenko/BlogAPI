@@ -51,6 +51,7 @@ public class ExceptionHandlingMiddleware
             NotFoundException => HttpStatusCode.NotFound,
             ConflictException => HttpStatusCode.Conflict,
             UnauthorizedException => HttpStatusCode.Unauthorized,
+            ForbiddenException => HttpStatusCode.Forbidden,
             _ => HttpStatusCode.InternalServerError
         };
 
@@ -62,6 +63,7 @@ public class ExceptionHandlingMiddleware
             NotFoundException => "Not Found",
             ConflictException => "Conflict",
             UnauthorizedException => "Unauthorized",
+            ForbiddenException => "Forbidden",
             _ => "Server Error"
         };
 

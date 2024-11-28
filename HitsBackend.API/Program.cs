@@ -82,6 +82,9 @@ builder.Services.AddScoped<IBannedTokenRepository, BannedTokenRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ITagService, TagService>();
 
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+
 builder.Services.AddTransient<TokenValidationMiddleware>();
 
 builder.Services.Configure<QuartzSettings>(

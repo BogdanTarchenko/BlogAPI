@@ -14,6 +14,7 @@ public class PostService : IPostService
     private readonly IPostRepository _postRepository;
     private readonly ITagRepository _tagRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ICommentRepository _commentRepository;
     
     private readonly IValidator<CreatePostDto> _postValidator;
 
@@ -21,12 +22,14 @@ public class PostService : IPostService
         IPostRepository postRepository,
         ITagRepository tagRepository,
         IValidator<CreatePostDto> postValidator,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        ICommentRepository commentRepository)
     {
         _postRepository = postRepository;
         _tagRepository = tagRepository;
         _userRepository = userRepository;
         _postValidator = postValidator;
+        _commentRepository = commentRepository;
     }
 
     public async Task<PostPagedListDto> GetAllAsync(
@@ -80,6 +83,7 @@ public class PostService : IPostService
         foreach (var post in posts)
         {
             bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(post.Id, userId);
+            var comments = await _commentRepository.GetByPostIdAsync(post.Id);
             postDtos.Add(new PostDto(
                 Id: post.Id,
                 CreateTime: post.CreateTime,
@@ -94,7 +98,7 @@ public class PostService : IPostService
                 AddressId: post.AddressId,
                 Likes: post.Likes.Count,
                 HasLike: hasLike,
-                CommentsCount: 0, // TODO: Реализовать подсчет комментариев
+                CommentsCount: comments.Count,
                 Tags: post.PostTags.Select(pt => new TagDto
                 {
                     Id = pt.Tag.Id,
@@ -170,6 +174,7 @@ public class PostService : IPostService
             ?? throw new NotFoundException(nameof(Post), id);
         
         bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(id, userId);
+        var comments = await _commentRepository.GetByPostIdAsync(id);
         
         return new PostFullDto(
             Id: post.Id,
@@ -185,14 +190,23 @@ public class PostService : IPostService
             AddressId: post.AddressId,
             Likes: post.Likes.Count,
             HasLike: hasLike,
-            CommentsCount: 0, // TODO: Реализовать подсчет комментариев
+            CommentsCount: comments.Count,
             Tags: post.PostTags.Select(pt => new TagDto
             {
                 Id = pt.Tag.Id,
                 Name = pt.Tag.Name,
                 CreateTime = pt.Tag.CreateTime
             }).ToList(),
-            Comments: new List<CommentDto>() // TODO: Реализовать получение комментариев
+            Comments: comments.Select(c => new CommentDto(
+                Id: c.Id,
+                CreateTime: c.CreateTime,
+                Content: c.Content,
+                ModifiedDate: c.ModifiedDate,
+                DeleteDate: c.DeleteDate,
+                AuthorId: c.AuthorId,
+                Author: c.Author.FullName,
+                SubComments: c.Replies.Count
+            )).ToList()
         );
     }
 
@@ -203,7 +217,6 @@ public class PostService : IPostService
         {
             throw new NotFoundException(nameof(Post), postId);
         }
-
         if (await _postRepository.HasUserLikedPostAsync(postId, userId))
         {
             throw new ValidationException("User has already liked this post.");
