@@ -198,8 +198,8 @@ public class PostService : IPostService
 
     public async Task AddLikeAsync(Guid postId, Guid userId)
     {
-        var postExists = await _postRepository.GetByIdAsync(postId) != null;
-        if (!postExists)
+        var post = await _postRepository.GetByIdAsync(postId);
+        if (post == null)
         {
             throw new NotFoundException(nameof(Post), postId);
         }
@@ -210,12 +210,13 @@ public class PostService : IPostService
         }
 
         await _postRepository.AddLikeAsync(postId, userId);
+        await _userRepository.IncrementLikesCountAsync(post.AuthorId);
     }
 
     public async Task RemoveLikeAsync(Guid postId, Guid userId)
     {
-        var postExists = await _postRepository.GetByIdAsync(postId) != null;
-        if (!postExists)
+        var post = await _postRepository.GetByIdAsync(postId);
+        if (post == null)
         {
             throw new NotFoundException(nameof(Post), postId);
         }
@@ -226,5 +227,6 @@ public class PostService : IPostService
         }
 
         await _postRepository.RemoveLikeAsync(postId, userId);
+        await _userRepository.DecrementLikesCountAsync(post.AuthorId);
     }
 } 

@@ -87,12 +87,12 @@ public class PostController : ControllerBase
     /// </summary>
     [HttpPost("{postId:guid}/like")]
     [Authorize]
-    public async Task<IActionResult> AddLike(Guid id)
+    public async Task<IActionResult> AddLike(Guid postId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
 
-        await _postService.AddLikeAsync(id, Guid.Parse(userId));
+        await _postService.AddLikeAsync(postId, Guid.Parse(userId));
         return Ok();
     }
 
@@ -101,12 +101,12 @@ public class PostController : ControllerBase
     /// </summary>
     [HttpDelete("{postId:guid}/like")]
     [Authorize]
-    public async Task<IActionResult> RemoveLike(Guid id)
+    public async Task<IActionResult> RemoveLike(Guid postId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
 
-        await _postService.RemoveLikeAsync(id, Guid.Parse(userId));
+        await _postService.RemoveLikeAsync(postId, Guid.Parse(userId));
         return Ok();
     }
 }

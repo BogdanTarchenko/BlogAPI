@@ -53,4 +53,24 @@ public class UserRepository : IUserRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task IncrementLikesCountAsync(Guid userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.LikesCount++;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DecrementLikesCountAsync(Guid userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null && user.LikesCount > 0)
+        {
+            user.LikesCount--;
+            await _context.SaveChangesAsync();
+        }
+    }
 }
