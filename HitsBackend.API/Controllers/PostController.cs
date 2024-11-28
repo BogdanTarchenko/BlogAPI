@@ -23,6 +23,8 @@ public class PostController : ControllerBase
     /// Get a list of available posts
     /// </summary>
     [HttpGet]
+    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<PostPagedListDto>> GetAll(
         [FromQuery] List<Guid>? tags,
         [FromQuery] string? author,
@@ -33,9 +35,17 @@ public class PostController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int size = 5)
     {
+        Guid? userId = null;
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrEmpty(userIdClaim))
+        {
+            userId = Guid.Parse(userIdClaim);
+        }
+
         return await _postService.GetAllAsync(
             tags, author, min, max, sorting, 
-            onlyMyCommunities, page, size);
+            onlyMyCommunities, page, size, userId);
     }
 
     /// <summary>
@@ -53,11 +63,50 @@ public class PostController : ControllerBase
     }
 
     /// <summary>
-    /// Get post by id
+    /// Get information about concrete post
     /// </summary>
     [HttpGet("{id:guid}")]
+    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<PostFullDto>> GetById(Guid id)
     {
-        return await _postService.GetByIdAsync(id);
+        Guid? userId = null;
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrEmpty(userIdClaim))
+        {
+            userId = Guid.Parse(userIdClaim);
+        }
+
+        var post = await _postService.GetByIdAsync(id, userId);
+        return Ok(post);
     }
-} 
+
+    /// <summary>
+    /// Add like to concrete post
+    /// </summary>
+    [HttpPost("{id:guid}/like")]
+    [Authorize]
+    public async Task<IActionResult> AddLike(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        await _postService.AddLikeAsync(id, Guid.Parse(userId));
+        return Ok();
+    }
+
+    /// <summary>
+    /// Delete like from concrete post
+    /// </summary>
+    [HttpDelete("{id:guid}/like")]
+    [Authorize]
+    public async Task<IActionResult> RemoveLike(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        await _postService.RemoveLikeAsync(id, Guid.Parse(userId));
+        return Ok();
+    }
+}

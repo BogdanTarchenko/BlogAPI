@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using FluentValidation;
 using HitsBackend.Application.Common.Exceptions;
 using HitsBackend.Application.Common.Interfaces;
@@ -36,7 +37,8 @@ public class PostService : IPostService
         PostSorting sorting = PostSorting.CreateDesc,
         bool onlyMyCommunities = false,
         int page = 1,
-        int size = 5)
+        int size = 5,
+        Guid? userId = null)
     {
         if (author != null && author.Length > 1000)
         {
@@ -73,28 +75,34 @@ public class PostService : IPostService
         var (posts, totalCount) = await _postRepository.GetAllAsync(
             tags, author, min, max, sorting, onlyMyCommunities, page, size);
 
-        var postDtos = posts.Select(p => new PostDto(
-            Id: p.Id,
-            CreateTime: p.CreateTime,
-            Title: p.Title,
-            Description: p.Description,
-            ReadingTime: p.ReadingTime,
-            Image: p.Image,
-            AuthorId: p.AuthorId,
-            Author: p.Author.FullName,
-            CommunityId: p.CommunityId,
-            CommunityName: p.CommunityName,
-            AddressId: p.AddressId,
-            Likes: p.Likes.Count,
-            HasLike: false, // TODO: Реализовать проверку лайка для авторизованного пользователя
-            CommentsCount: 0, // TODO: Реализовать подсчет комментариев
-            Tags: p.PostTags.Select(pt => new TagDto
-            {
-                Id = pt.Tag.Id,
-                Name = pt.Tag.Name,
-                CreateTime = pt.Tag.CreateTime
-            }).ToList()
-        )).ToList();
+        var postDtos = new List<PostDto>();
+
+        foreach (var post in posts)
+        {
+            bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(post.Id, userId);
+            postDtos.Add(new PostDto(
+                Id: post.Id,
+                CreateTime: post.CreateTime,
+                Title: post.Title,
+                Description: post.Description,
+                ReadingTime: post.ReadingTime,
+                Image: post.Image,
+                AuthorId: post.AuthorId,
+                Author: post.Author.FullName,
+                CommunityId: post.CommunityId,
+                CommunityName: post.CommunityName,
+                AddressId: post.AddressId,
+                Likes: post.Likes.Count,
+                HasLike: hasLike,
+                CommentsCount: 0, // TODO: Реализовать подсчет комментариев
+                Tags: post.PostTags.Select(pt => new TagDto
+                {
+                    Id = pt.Tag.Id,
+                    Name = pt.Tag.Name,
+                    CreateTime = pt.Tag.CreateTime
+                }).ToList()
+            ));
+        }
 
         return new PostPagedListDto
         {
@@ -121,7 +129,6 @@ public class PostService : IPostService
 
         var existingTags = await _tagRepository.GetAllAsync();
         var validTagIds = existingTags.Select(t => t.Id).ToList();
-        
         if (dto.Tags.Any(t => !validTagIds.Contains(t)))
             throw new ValidationException("One or more tags do not exist");
 
@@ -154,15 +161,16 @@ public class PostService : IPostService
 
         await _postRepository.CreateAsync(post);
         await _userRepository.IncrementPostsCountAsync(userId);
-        
         return post.Id;
     }
 
-    public async Task<PostFullDto> GetByIdAsync(Guid id)
+    public async Task<PostFullDto> GetByIdAsync(Guid id, Guid? userId)
     {
         var post = await _postRepository.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Post), id);
-
+        
+        bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(id, userId);
+        
         return new PostFullDto(
             Id: post.Id,
             CreateTime: post.CreateTime,
@@ -176,7 +184,7 @@ public class PostService : IPostService
             CommunityName: post.CommunityName,
             AddressId: post.AddressId,
             Likes: post.Likes.Count,
-            HasLike: false, // TODO: Реализовать проверку лайка для авторизованного пользователя
+            HasLike: hasLike,
             CommentsCount: 0, // TODO: Реализовать подсчет комментариев
             Tags: post.PostTags.Select(pt => new TagDto
             {
@@ -186,5 +194,37 @@ public class PostService : IPostService
             }).ToList(),
             Comments: new List<CommentDto>() // TODO: Реализовать получение комментариев
         );
+    }
+
+    public async Task AddLikeAsync(Guid postId, Guid userId)
+    {
+        var postExists = await _postRepository.GetByIdAsync(postId) != null;
+        if (!postExists)
+        {
+            throw new NotFoundException(nameof(Post), postId);
+        }
+
+        if (await _postRepository.HasUserLikedPostAsync(postId, userId))
+        {
+            throw new ValidationException("User has already liked this post.");
+        }
+
+        await _postRepository.AddLikeAsync(postId, userId);
+    }
+
+    public async Task RemoveLikeAsync(Guid postId, Guid userId)
+    {
+        var postExists = await _postRepository.GetByIdAsync(postId) != null;
+        if (!postExists)
+        {
+            throw new NotFoundException(nameof(Post), postId);
+        }
+
+        if (!await _postRepository.HasUserLikedPostAsync(postId, userId))
+        {
+            throw new ValidationException("User hasn't liked this post.");
+        }
+
+        await _postRepository.RemoveLikeAsync(postId, userId);
     }
 } 

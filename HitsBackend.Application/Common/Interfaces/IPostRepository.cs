@@ -16,6 +16,8 @@ public interface IPostRepository
         int size = 5);
         
     Task<Post> CreateAsync(Post post);
-
     Task<Post?> GetByIdAsync(Guid id);
+    Task AddLikeAsync(Guid postId, Guid userId);
+    Task RemoveLikeAsync(Guid postId, Guid userId);
+    Task<bool> HasUserLikedPostAsync(Guid postId, Guid? userId);
 } 

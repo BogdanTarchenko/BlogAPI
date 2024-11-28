@@ -13,9 +13,11 @@ public interface IPostService
         PostSorting sorting = PostSorting.CreateDesc,
         bool onlyMyCommunities = false,
         int page = 1,
-        int size = 5);
+        int size = 5,
+        Guid? userId = null);
         
     Task<Guid> CreateAsync(Guid userId, CreatePostDto dto);
-
-    Task<PostFullDto> GetByIdAsync(Guid id);
+    Task<PostFullDto> GetByIdAsync(Guid id, Guid? userId);
+    Task AddLikeAsync(Guid postId, Guid userId);
+    Task RemoveLikeAsync(Guid postId, Guid userId);
 } 

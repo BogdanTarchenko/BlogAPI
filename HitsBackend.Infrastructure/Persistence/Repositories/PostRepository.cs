@@ -26,35 +26,33 @@ public class PostRepository : IPostRepository
         int size = 5)
     {
         var query = _context.Posts
+            .AsNoTracking()
             .Include(p => p.Author)
             .Include(p => p.PostTags)
                 .ThenInclude(pt => pt.Tag)
             .Include(p => p.Likes)
             .AsQueryable();
 
-        // tag
         if (tags != null && tags.Any())
         {
             query = query.Where(p => p.PostTags.Any(pt => tags.Contains(pt.TagId)));
         }
 
-        // author
         if (!string.IsNullOrEmpty(author))
         {
             query = query.Where(p => p.Author.FullName.ToLower().Contains(author.ToLower()));
         }
 
-        // read time
         if (min.HasValue)
         {
             query = query.Where(p => p.ReadingTime >= min.Value);
         }
+
         if (max.HasValue)
         {
             query = query.Where(p => p.ReadingTime <= max.Value);
         }
 
-        // sort
         query = sorting switch
         {
             PostSorting.CreateAsc => query.OrderBy(p => p.CreateTime),
@@ -63,10 +61,9 @@ public class PostRepository : IPostRepository
             PostSorting.LikeDesc => query.OrderByDescending(p => p.Likes.Count),
             _ => query.OrderByDescending(p => p.CreateTime)
         };
-        
+
         var totalCount = await query.CountAsync();
 
-        // pagination
         var posts = await query
             .Skip((page - 1) * size)
             .Take(size)
@@ -85,10 +82,52 @@ public class PostRepository : IPostRepository
     public async Task<Post?> GetByIdAsync(Guid id)
     {
         return await _context.Posts
+            .AsNoTracking()
             .Include(p => p.Author)
             .Include(p => p.PostTags)
                 .ThenInclude(pt => pt.Tag)
             .Include(p => p.Likes)
             .FirstOrDefaultAsync(p => p.Id == id);
+    }
+
+    public async Task AddLikeAsync(Guid postId, Guid userId)
+    {
+        var post = await _context.Posts.Include(p => p.Likes).FirstOrDefaultAsync(p => p.Id == postId);
+        if (post != null && !post.Likes.Any(l => l.UserId == userId))
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                post.Likes.Add(new PostLike
+                {
+                    PostId = postId,
+                    Post = post,
+                    UserId = userId,
+                    User = user,
+                    CreateTime = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+            }
+        }
+    }
+
+    public async Task RemoveLikeAsync(Guid postId, Guid userId)
+    {
+        var post = await _context.Posts.Include(p => p.Likes).FirstOrDefaultAsync(p => p.Id == postId);
+        var like = post?.Likes.FirstOrDefault(l => l.UserId == userId);
+        if (like != null)
+        {
+            post?.Likes.Remove(like);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<bool> HasUserLikedPostAsync(Guid postId, Guid? userId)
+    {
+        var post = await _context.Posts
+            .AsNoTracking()
+            .Include(p => p.Likes)
+            .FirstOrDefaultAsync(p => p.Id == postId);
+        return post?.Likes.Any(l => l.UserId == userId) ?? false;
     }
 } 
