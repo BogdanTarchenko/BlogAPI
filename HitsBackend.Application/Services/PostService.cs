@@ -196,10 +196,22 @@ public class PostService : IPostService
     {
         var post = await _postRepository.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Post), id);
-        
+
+        if (post.CommunityId.HasValue)
+        {
+            var community = await _communityRepository.GetByIdAsync(post.CommunityId.Value);
+            if (community?.IsClosed == true)
+            {
+                if (!userId.HasValue || !await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, userId.Value))
+                {
+                    throw new ForbiddenException("Access to this post is restricted.");
+                }
+            }
+        }
+
         bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(id, userId);
         var comments = await _commentRepository.GetByPostIdAsync(id);
-        
+
         return new PostFullDto(
             Id: post.Id,
             CreateTime: post.CreateTime,
