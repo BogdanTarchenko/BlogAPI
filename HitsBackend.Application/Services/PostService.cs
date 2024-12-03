@@ -88,6 +88,13 @@ public class PostService : IPostService
         var (posts, totalCount) = await _postRepository.GetAllAsync(
             tags, author, min, max, sorting, onlyMyCommunities, page, size);
 
+        var totalPages = (int)Math.Ceiling((double)totalCount / size);
+
+        if (page > totalPages)
+        {
+            throw new ValidationException("Requested page exceeds total number of pages.");
+        }
+
         var postDtos = new List<PostDto>();
 
         foreach (var post in posts)
@@ -151,7 +158,7 @@ public class PostService : IPostService
             Pagination = new PageInfoModel
             {
                 Size = size,
-                Count = totalCount,
+                Count = totalPages,
                 Current = page
             }
         };
@@ -330,6 +337,13 @@ public class PostService : IPostService
         var (posts, totalCount) = await _postRepository.GetAllByCommunityIdAsync(
             communityId, tags, sorting, page, size);
 
+        var totalPages = (int)Math.Ceiling((double)totalCount / size);
+
+        if (page > totalPages)
+        {
+            throw new ValidationException("Requested page exceeds total number of pages.");
+        }
+
         var postDtos = new List<PostDto>();
 
         foreach (var post in posts)
@@ -366,7 +380,7 @@ public class PostService : IPostService
             Pagination = new PageInfoModel
             {
                 Size = size,
-                Count = totalCount,
+                Count = totalPages,
                 Current = page
             }
         };
