@@ -318,4 +318,57 @@ public class PostService : IPostService
         await _postRepository.RemoveLikeAsync(postId, userId);
         await _userRepository.DecrementLikesCountAsync(post.AuthorId);
     }
+
+    public async Task<PostPagedListDto> GetAllByCommunityIdAsync(
+        Guid communityId,
+        List<Guid>? tags = null,
+        PostSorting sorting = PostSorting.CreateDesc,
+        int page = 1,
+        int size = 5,
+        Guid? userId = null)
+    {
+        var (posts, totalCount) = await _postRepository.GetAllByCommunityIdAsync(
+            communityId, tags, sorting, page, size);
+
+        var postDtos = new List<PostDto>();
+
+        foreach (var post in posts)
+        {
+            bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(post.Id, userId);
+            var comments = await _commentRepository.GetByPostIdAsync(post.Id);
+            postDtos.Add(new PostDto(
+                Id: post.Id,
+                CreateTime: post.CreateTime,
+                Title: post.Title,
+                Description: post.Description,
+                ReadingTime: post.ReadingTime,
+                Image: post.Image,
+                AuthorId: post.AuthorId,
+                Author: post.Author.FullName,
+                CommunityId: post.CommunityId,
+                CommunityName: post.CommunityName,
+                AddressId: post.AddressId,
+                Likes: post.Likes.Count,
+                HasLike: hasLike,
+                CommentsCount: comments.Count,
+                Tags: post.PostTags.Select(pt => new TagDto
+                {
+                    Id = pt.Tag.Id,
+                    Name = pt.Tag.Name,
+                    CreateTime = pt.Tag.CreateTime
+                }).ToList()
+            ));
+        }
+
+        return new PostPagedListDto
+        {
+            Posts = postDtos,
+            Pagination = new PageInfoModel
+            {
+                Size = size,
+                Count = totalCount,
+                Current = page
+            }
+        };
+    }
 } 

@@ -175,6 +175,31 @@ public class CommunityService : ICommunityService
         return communityUser.Role;
     }
 
+    public async Task<PostPagedListDto> GetPostsByCommunityIdAsync(
+        Guid communityId,
+        List<Guid>? tags,
+        PostSorting sorting,
+        int page,
+        int size,
+        Guid? userId)
+    {
+        var community = await _communityRepository.GetByIdAsync(communityId);
+        if (community == null)
+        {
+            throw new NotFoundException(nameof(Community), communityId);
+        }
+
+        if (community.IsClosed)
+        {
+            if (!userId.HasValue || !await _communityUserRepository.IsUserSubscribedAsync(communityId, userId.Value))
+            {
+                throw new ForbiddenException("Access to this community's posts is restricted.");
+            }
+        }
+
+        return await _postService.GetAllByCommunityIdAsync(communityId, tags, sorting, page, size, userId);
+    }
+
     private static CommunityDto MapToDto(Community community)
     {
         return new CommunityDto

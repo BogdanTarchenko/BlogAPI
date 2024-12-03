@@ -14,7 +14,14 @@ public interface IPostRepository
         bool onlyMyCommunities = false,
         int page = 1,
         int size = 5);
-        
+
+    Task<(List<Post> Posts, int TotalCount)> GetAllByCommunityIdAsync(
+        Guid communityId,
+        List<Guid>? tags = null,
+        PostSorting sorting = PostSorting.CreateDesc,
+        int page = 1,
+        int size = 5);
+
     Task<Post> CreateAsync(Post post);
     Task<Post?> GetByIdAsync(Guid id);
     Task AddLikeAsync(Guid postId, Guid userId);

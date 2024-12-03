@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using HitsBackend.Application.Common.Interfaces;
 using HitsBackend.Application.Common.Models;
+using HitsBackend.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -130,5 +131,27 @@ public class CommunityController : ControllerBase
         }
 
         return Ok(new { Role = role.ToString() });
+    }
+
+    [HttpGet("{id}/post")]
+    [Authorize]
+    [AllowAnonymous]
+    public async Task<ActionResult<PostPagedListDto>> GetPostsByCommunityId(
+        Guid id,
+        [FromQuery] List<Guid>? tags,
+        [FromQuery] PostSorting sorting = PostSorting.CreateDesc,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 5)
+    {
+        Guid? userId = null;
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrEmpty(userIdClaim))
+        {
+            userId = Guid.Parse(userIdClaim);
+        }
+
+        var posts = await _communityService.GetPostsByCommunityIdAsync(id, tags, sorting, page, size, userId);
+        return Ok(posts);
     }
 } 

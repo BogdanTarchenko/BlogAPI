@@ -15,7 +15,15 @@ public interface IPostService
         int page = 1,
         int size = 5,
         Guid? userId = null);
-        
+
+    Task<PostPagedListDto> GetAllByCommunityIdAsync(
+        Guid communityId,
+        List<Guid>? tags = null,
+        PostSorting sorting = PostSorting.CreateDesc,
+        int page = 1,
+        int size = 5,
+        Guid? userId = null);
+
     Task<Guid> CreateAsync(Guid userId, CreatePostDto dto, Guid? communityId = null, string? communityName = null);
     Task<PostFullDto> GetByIdAsync(Guid id, Guid? userId);
     Task AddLikeAsync(Guid postId, Guid userId);
