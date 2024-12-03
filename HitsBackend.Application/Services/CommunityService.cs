@@ -17,14 +17,40 @@ public class CommunityService : ICommunityService
         _communityUserRepository = communityUserRepository;
     }
 
-    public async Task<CommunityDto?> GetCommunityByIdAsync(Guid id)
+    public async Task<CommunityFullDto?> GetCommunityByIdAsync(Guid id)
     {
         var community = await _communityRepository.GetByIdAsync(id);
         if (community == null)
         {
             throw new NotFoundException(nameof(Community), id);
         }
-        return MapToDto(community);
+
+        var communityUsers = await _communityUserRepository.GetCommunityUsersAsync(id);
+
+        var administrators = communityUsers
+            .Where(cu => cu.Role == CommunityRole.Administrator)
+            .Select(cu => new UserDto
+            {
+                Id = cu.UserId,
+                FullName = cu.User.FullName,
+                CreateTime = cu.User.CreateTime,
+                Gender = cu.User.Gender,
+                Email = cu.User.Email,
+                BirthDate = cu.User.BirthDate,
+                PhoneNumber = cu.User.PhoneNumber
+            })
+            .ToList();
+
+        return new CommunityFullDto
+        {
+            Id = community.Id,
+            CreateTime = community.CreateTime,
+            Name = community.Name,
+            Description = community.Description,
+            IsClosed = community.IsClosed,
+            SubscribersCount = community.SubscribersCount,
+            Administrators = administrators
+        };
     }
 
     public async Task<List<CommunityDto>> GetAllCommunitiesAsync()

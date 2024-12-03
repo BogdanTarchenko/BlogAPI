@@ -77,4 +77,18 @@ public class CommunityController : ControllerBase
         var communities = await _communityService.GetUserCommunitiesAsync(Guid.Parse(userId));
         return Ok(communities);
     }
+
+    /// <summary>
+    /// Get information about community
+    /// </summary>
+    [HttpGet("{id}")]
+    public async Task<ActionResult<CommunityFullDto>> GetCommunityById(Guid id)
+    {
+        var community = await _communityService.GetCommunityByIdAsync(id);
+        if (community == null)
+        {
+            return NotFound();
+        }
+        return Ok(community);
+    }
 } 

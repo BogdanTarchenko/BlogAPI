@@ -57,4 +57,12 @@ public class CommunityUserRepository : ICommunityUserRepository
         return await _context.CommunityUsers
             .FirstOrDefaultAsync(cu => cu.CommunityId == communityId && cu.UserId == userId);
     }
+
+    public async Task<List<CommunityUser>> GetCommunityUsersAsync(Guid communityId)
+    {
+        return await _context.CommunityUsers
+            .Include(cu => cu.User)
+            .Where(cu => cu.CommunityId == communityId)
+            .ToListAsync();
+    }
 } 

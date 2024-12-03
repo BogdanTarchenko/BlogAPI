@@ -10,4 +10,5 @@ public interface ICommunityUserRepository
     Task RemoveUserFromCommunityAsync(Guid communityId, Guid userId);
     Task<List<CommunityUser>> GetUserCommunitiesAsync(Guid userId);
     Task<CommunityUser?> GetCommunityUserAsync(Guid communityId, Guid userId);
+    Task<List<CommunityUser>> GetCommunityUsersAsync(Guid communityId);
 } 
