@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<PostLike> PostLikes { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Community> Communities { get; set; }
+    public DbSet<CommunityUser> CommunityUsers { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,6 +58,10 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.AuthorId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Community)
+                .WithMany(c => c.Posts)
+                .HasForeignKey(e => e.CommunityId);
         });
         
         modelBuilder.Entity<PostTag>(entity =>
@@ -107,6 +112,37 @@ public class ApplicationDbContext : DbContext
                 .WithMany(c => c.Replies)
                 .HasForeignKey(e => e.ParentCommentId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Community>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.Description).HasMaxLength(5000);
+            entity.Property(e => e.CreateTime).IsRequired();
+            entity.Property(e => e.IsClosed).IsRequired();
+            entity.Property(e => e.SubscribersCount).IsRequired().HasDefaultValue(0);
+
+            entity.HasMany(e => e.CommunityUsers)
+                  .WithOne(cu => cu.Community)
+                  .HasForeignKey(cu => cu.CommunityId);
+
+            entity.HasMany(e => e.Posts)
+                  .WithOne(p => p.Community)
+                  .HasForeignKey(p => p.CommunityId);
+        });
+
+        modelBuilder.Entity<CommunityUser>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.CommunityId });
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId);
+
+            entity.HasOne(e => e.Community)
+                .WithMany(c => c.CommunityUsers)
+                .HasForeignKey(e => e.CommunityId);
         });
     }
 }

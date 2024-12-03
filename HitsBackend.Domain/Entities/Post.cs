@@ -17,6 +17,8 @@ public class Post
     public Guid? AddressId { get; set; }
     
     public Guid? CommunityId { get; set; }
+    public Community? Community { get; set; }
+
     public string? CommunityName { get; set; }
     
     public ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
