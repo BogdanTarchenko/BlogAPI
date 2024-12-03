@@ -11,12 +11,15 @@ public class CommunityService : ICommunityService
     private readonly ICommunityRepository _communityRepository;
     private readonly ICommunityUserRepository _communityUserRepository;
     private readonly IPostService _postService;
+    private readonly ITagRepository _tagRepository;
 
-    public CommunityService(ICommunityRepository communityRepository, ICommunityUserRepository communityUserRepository, IPostService postService)
+    public CommunityService(ICommunityRepository communityRepository, ICommunityUserRepository communityUserRepository,
+        IPostService postService, ITagRepository tagRepository)
     {
         _communityRepository = communityRepository;
         _communityUserRepository = communityUserRepository;
         _postService = postService;
+        _tagRepository = tagRepository;
     }
 
     public async Task<CommunityFullDto?> GetCommunityByIdAsync(Guid id)
@@ -183,6 +186,18 @@ public class CommunityService : ICommunityService
         int size,
         Guid? userId)
     {
+        if (tags != null && tags.Any())
+        {
+            var existingTags = await _tagRepository.GetAllAsync();
+            var validTagIds = existingTags.Select(t => t.Id).ToList();
+            var invalidTags = tags.Where(t => !validTagIds.Contains(t)).ToList();
+            
+            if (invalidTags.Any())
+            {
+                throw new ValidationException($"Tags with IDs {string.Join(", ", invalidTags)} do not exist");
+            }
+        }
+        
         var community = await _communityRepository.GetByIdAsync(communityId);
         if (community == null)
         {
