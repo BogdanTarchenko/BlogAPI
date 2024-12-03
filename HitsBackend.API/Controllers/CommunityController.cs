@@ -133,6 +133,9 @@ public class CommunityController : ControllerBase
         return Ok(new { Role = role.ToString() });
     }
 
+    /// <summary>
+    /// Get community's posts
+    /// </summary>
     [HttpGet("{id}/post")]
     [Authorize]
     [AllowAnonymous]
