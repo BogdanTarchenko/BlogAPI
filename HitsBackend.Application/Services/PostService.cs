@@ -268,6 +268,19 @@ public class PostService : IPostService
         {
             throw new NotFoundException(nameof(Post), postId);
         }
+
+        if (post.CommunityId.HasValue)
+        {
+            var community = await _communityRepository.GetByIdAsync(post.CommunityId.Value);
+            if (community?.IsClosed == true)
+            {
+                if (!await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, userId))
+                {
+                    throw new ForbiddenException("Access to this post is restricted.");
+                }
+            }
+        }
+
         if (await _postRepository.HasUserLikedPostAsync(postId, userId))
         {
             throw new ValidationException("User has already liked this post.");
@@ -283,6 +296,18 @@ public class PostService : IPostService
         if (post == null)
         {
             throw new NotFoundException(nameof(Post), postId);
+        }
+
+        if (post.CommunityId.HasValue)
+        {
+            var community = await _communityRepository.GetByIdAsync(post.CommunityId.Value);
+            if (community?.IsClosed == true)
+            {
+                if (!await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, userId))
+                {
+                    throw new ForbiddenException("Access to this post is restricted.");
+                }
+            }
         }
 
         if (!await _postRepository.HasUserLikedPostAsync(postId, userId))
