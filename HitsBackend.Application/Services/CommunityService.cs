@@ -158,6 +158,17 @@ public class CommunityService : ICommunityService
         return await _postService.CreateAsync(userId, dto);
     }
 
+    public async Task<CommunityRole?> GetUserRoleInCommunityAsync(Guid communityId, Guid userId)
+    {
+        var communityUser = await _communityUserRepository.GetCommunityUserAsync(communityId, userId);
+        if (communityUser == null)
+        {
+            return null;
+        }
+
+        return communityUser.Role;
+    }
+
     private static CommunityDto MapToDto(Community community)
     {
         return new CommunityDto

@@ -1,5 +1,5 @@
 using HitsBackend.Application.Common.Models;
-using HitsBackend.Domain.Entities;
+using HitsBackend.Domain.Enums;
 
 namespace HitsBackend.Application.Common.Interfaces;
 
@@ -14,4 +14,5 @@ public interface ICommunityService
     Task<List<CommunityUserDto>> GetUserCommunitiesAsync(Guid userId);
     Task<bool> IsUserAdminAsync(Guid communityId, Guid userId);
     Task<Guid> CreatePostInCommunityAsync(Guid communityId, Guid userId, CreatePostDto dto);
+    Task<CommunityRole?> GetUserRoleInCommunityAsync(Guid communityId, Guid userId);
 }

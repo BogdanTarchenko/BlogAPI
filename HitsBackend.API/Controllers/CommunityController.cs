@@ -108,4 +108,27 @@ public class CommunityController : ControllerBase
         var postId = await _communityService.CreatePostInCommunityAsync(id, Guid.Parse(userId), dto);
         return Ok(postId);
     }
+
+    /// <summary>
+    /// Get the greatest user's role in the community (or null if the user is not a member of the community)
+    /// </summary>
+    [HttpGet("{id}/role")]
+    [Authorize]
+    public async Task<IActionResult> GetUserRoleInCommunity(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        var role = await _communityService.GetUserRoleInCommunityAsync(id, Guid.Parse(userId));
+
+        if (role == null)
+        {
+            return Ok(new { Role = role} );
+        }
+
+        return Ok(new { Role = role.ToString() });
+    }
 } 
