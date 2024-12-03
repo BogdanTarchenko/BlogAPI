@@ -2,6 +2,7 @@ using HitsBackend.Application.Common.Exceptions;
 using HitsBackend.Application.Common.Interfaces;
 using HitsBackend.Application.Common.Models;
 using HitsBackend.Domain.Entities;
+using HitsBackend.Domain.Enums;
 
 namespace HitsBackend.Application.Services;
 
@@ -77,10 +78,15 @@ public class CommunityService : ICommunityService
             throw new NotFoundException(nameof(Community), communityId);
         }
 
-        var isSubscribed = await _communityUserRepository.IsUserSubscribedAsync(communityId, userId);
-        if (!isSubscribed)
+        var communityUser = await _communityUserRepository.GetCommunityUserAsync(communityId, userId);
+        if (communityUser == null)
         {
             throw new ValidationException("User is not subscribed to this community.");
+        }
+
+        if (communityUser.Role == CommunityRole.Administrator)
+        {
+            throw new ValidationException("Administrators cannot unsubscribe from the community.");
         }
 
         await _communityUserRepository.RemoveUserFromCommunityAsync(communityId, userId);
@@ -89,6 +95,17 @@ public class CommunityService : ICommunityService
             community.SubscribersCount--;
             await _communityRepository.UpdateAsync(community);
         }
+    }
+
+    public async Task<List<CommunityUserDto>> GetUserCommunitiesAsync(Guid userId)
+    {
+        var userCommunities = await _communityUserRepository.GetUserCommunitiesAsync(userId);
+        return userCommunities.Select(uc => new CommunityUserDto
+        {
+            CommunityId = uc.Community.Id,
+            Role = uc.Role,
+            UserId = userId
+        }).ToList();
     }
 
     private static CommunityDto MapToDto(Community community)

@@ -1,5 +1,6 @@
 using HitsBackend.Application.Common.Interfaces;
 using HitsBackend.Domain.Entities;
+using HitsBackend.Domain.Enums;
 using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +22,12 @@ public class CommunityUserRepository : ICommunityUserRepository
 
     public async Task AddUserToCommunityAsync(Guid communityId, Guid userId)
     {
-        var communityUser = new CommunityUser { CommunityId = communityId, UserId = userId };
+        var communityUser = new CommunityUser
+        {
+            CommunityId = communityId,
+            UserId = userId,
+            Role = CommunityRole.Subscriber
+        };
         await _context.CommunityUsers.AddAsync(communityUser);
         await _context.SaveChangesAsync();
     }
@@ -36,5 +42,19 @@ public class CommunityUserRepository : ICommunityUserRepository
             _context.CommunityUsers.Remove(communityUser);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<List<CommunityUser>> GetUserCommunitiesAsync(Guid userId)
+    {
+        return await _context.CommunityUsers
+            .Include(cu => cu.Community)
+            .Where(cu => cu.UserId == userId)
+            .ToListAsync();
+    }
+
+    public async Task<CommunityUser?> GetCommunityUserAsync(Guid communityId, Guid userId)
+    {
+        return await _context.CommunityUsers
+            .FirstOrDefaultAsync(cu => cu.CommunityId == communityId && cu.UserId == userId);
     }
 } 

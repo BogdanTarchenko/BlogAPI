@@ -60,4 +60,21 @@ public class CommunityController : ControllerBase
         await _communityService.UnsubscribeAsync(id, Guid.Parse(userId));
         return Ok();
     }
+
+    /// <summary>
+    /// Get user's community list (with the greatest user's role in the community)
+    /// </summary>
+    [HttpGet("my")]
+    [Authorize]
+    public async Task<ActionResult<List<CommunityUserDto>>> GetUserCommunities()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        var communities = await _communityService.GetUserCommunitiesAsync(Guid.Parse(userId));
+        return Ok(communities);
+    }
 } 
