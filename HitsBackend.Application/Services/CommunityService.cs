@@ -155,7 +155,13 @@ public class CommunityService : ICommunityService
             throw new ValidationException("Only administrators can create posts in this community.");
         }
 
-        return await _postService.CreateAsync(userId, dto);
+        var community = await _communityRepository.GetByIdAsync(communityId);
+        if (community == null)
+        {
+            throw new NotFoundException(nameof(Community), communityId);
+        }
+
+        return await _postService.CreateAsync(userId, dto, communityId, community.Name);
     }
 
     public async Task<CommunityRole?> GetUserRoleInCommunityAsync(Guid communityId, Guid userId)

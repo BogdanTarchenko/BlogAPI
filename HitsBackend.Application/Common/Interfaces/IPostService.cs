@@ -16,7 +16,7 @@ public interface IPostService
         int size = 5,
         Guid? userId = null);
         
-    Task<Guid> CreateAsync(Guid userId, CreatePostDto dto);
+    Task<Guid> CreateAsync(Guid userId, CreatePostDto dto, Guid? communityId = null, string? communityName = null);
     Task<PostFullDto> GetByIdAsync(Guid id, Guid? userId);
     Task AddLikeAsync(Guid postId, Guid userId);
     Task RemoveLikeAsync(Guid postId, Guid userId);

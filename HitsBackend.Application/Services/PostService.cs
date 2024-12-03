@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using FluentValidation;
 using HitsBackend.Application.Common.Exceptions;
 using HitsBackend.Application.Common.Interfaces;
@@ -120,7 +119,7 @@ public class PostService : IPostService
         };
     }
 
-    public async Task<Guid> CreateAsync(Guid userId, CreatePostDto dto)
+    public async Task<Guid> CreateAsync(Guid userId, CreatePostDto dto, Guid? communityId, string? communityName)
     {
         var validationResult = await _postValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
@@ -148,6 +147,8 @@ public class PostService : IPostService
             AuthorId = userId,
             Author = user,
             AddressId = dto.AddressId,
+            CommunityId = communityId,
+            CommunityName = communityName,
             PostTags = new List<PostTag>()
         };
 
