@@ -8,5 +8,4 @@ public interface ICommunityRepository
     Task<List<Community>> GetAllAsync();
     Task AddAsync(Community community);
     Task UpdateAsync(Community community);
-    Task DeleteAsync(Guid id);
 }

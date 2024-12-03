@@ -37,14 +37,4 @@ public class CommunityRepository : ICommunityRepository
         _context.Communities.Update(community);
         await _context.SaveChangesAsync();
     }
-
-    public async Task DeleteAsync(Guid id)
-    {
-        var community = await GetByIdAsync(id);
-        if (community != null)
-        {
-            _context.Communities.Remove(community);
-            await _context.SaveChangesAsync();
-        }
-    }
 }
