@@ -8,10 +8,12 @@ namespace HitsBackend.Application.Services;
 public class CommunityService : ICommunityService
 {
     private readonly ICommunityRepository _communityRepository;
+    private readonly ICommunityUserRepository _communityUserRepository;
 
-    public CommunityService(ICommunityRepository communityRepository)
+    public CommunityService(ICommunityRepository communityRepository, ICommunityUserRepository communityUserRepository)
     {
         _communityRepository = communityRepository;
+        _communityUserRepository = communityUserRepository;
     }
 
     public async Task<CommunityDto?> GetCommunityByIdAsync(Guid id)
@@ -46,6 +48,47 @@ public class CommunityService : ICommunityService
 
         UpdateEntityFromDto(community, communityDto);
         await _communityRepository.UpdateAsync(community);
+    }
+
+    public async Task SubscribeAsync(Guid communityId, Guid userId)
+    {
+        var community = await _communityRepository.GetByIdAsync(communityId);
+        if (community == null)
+        {
+            throw new NotFoundException(nameof(Community), communityId);
+        }
+
+        var isSubscribed = await _communityUserRepository.IsUserSubscribedAsync(communityId, userId);
+        if (isSubscribed)
+        {
+            throw new ValidationException("User is already subscribed to this community.");
+        }
+
+        await _communityUserRepository.AddUserToCommunityAsync(communityId, userId);
+        community.SubscribersCount++;
+        await _communityRepository.UpdateAsync(community);
+    }
+
+    public async Task UnsubscribeAsync(Guid communityId, Guid userId)
+    {
+        var community = await _communityRepository.GetByIdAsync(communityId);
+        if (community == null)
+        {
+            throw new NotFoundException(nameof(Community), communityId);
+        }
+
+        var isSubscribed = await _communityUserRepository.IsUserSubscribedAsync(communityId, userId);
+        if (!isSubscribed)
+        {
+            throw new ValidationException("User is not subscribed to this community.");
+        }
+
+        await _communityUserRepository.RemoveUserFromCommunityAsync(communityId, userId);
+        if (community.SubscribersCount > 0)
+        {
+            community.SubscribersCount--;
+            await _communityRepository.UpdateAsync(community);
+        }
     }
 
     private static CommunityDto MapToDto(Community community)

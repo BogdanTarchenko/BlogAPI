@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using HitsBackend.Application.Common.Interfaces;
 using HitsBackend.Application.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HitsBackend.Controllers;
@@ -23,5 +25,39 @@ public class CommunityController : ControllerBase
     {
         var communities = await _communityService.GetAllCommunitiesAsync();
         return Ok(communities);
+    }
+    
+    /// <summary>
+    /// Subscribe a user to the community
+    /// </summary>
+    [HttpPost("{id}/subscribe")]
+    [Authorize]
+    public async Task<IActionResult> Subscribe(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        await _communityService.SubscribeAsync(id, Guid.Parse(userId));
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Unsubscribe a user from the community
+    /// </summary>
+    [HttpDelete("{id}/unsubscribe")]
+    [Authorize]
+    public async Task<IActionResult> Unsubscribe(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        await _communityService.UnsubscribeAsync(id, Guid.Parse(userId));
+        return Ok();
     }
 } 
