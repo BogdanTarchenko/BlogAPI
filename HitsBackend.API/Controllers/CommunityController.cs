@@ -91,4 +91,21 @@ public class CommunityController : ControllerBase
         }
         return Ok(community);
     }
+
+    /// <summary>
+    /// Create a post in the specified community
+    /// </summary>
+    [HttpPost("{id}/post")]
+    [Authorize]
+    public async Task<IActionResult> CreatePostInCommunity(Guid id, [FromBody] CreatePostDto dto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+        
+        var postId = await _communityService.CreatePostInCommunityAsync(id, Guid.Parse(userId), dto);
+        return Ok(postId);
+    }
 } 

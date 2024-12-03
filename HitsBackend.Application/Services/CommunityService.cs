@@ -10,11 +10,13 @@ public class CommunityService : ICommunityService
 {
     private readonly ICommunityRepository _communityRepository;
     private readonly ICommunityUserRepository _communityUserRepository;
+    private readonly IPostService _postService;
 
-    public CommunityService(ICommunityRepository communityRepository, ICommunityUserRepository communityUserRepository)
+    public CommunityService(ICommunityRepository communityRepository, ICommunityUserRepository communityUserRepository, IPostService postService)
     {
         _communityRepository = communityRepository;
         _communityUserRepository = communityUserRepository;
+        _postService = postService;
     }
 
     public async Task<CommunityFullDto?> GetCommunityByIdAsync(Guid id)
@@ -132,6 +134,28 @@ public class CommunityService : ICommunityService
             Role = uc.Role,
             UserId = userId
         }).ToList();
+    }
+
+    public async Task<bool> IsUserAdminAsync(Guid communityId, Guid userId)
+    {
+        var communityUser = await _communityUserRepository.GetCommunityUserAsync(communityId, userId);
+        return communityUser != null && communityUser.Role == CommunityRole.Administrator;
+    }
+
+    public async Task<Guid> CreatePostInCommunityAsync(Guid communityId, Guid userId, CreatePostDto dto)
+    {
+        var communityUser = await _communityUserRepository.GetCommunityUserAsync(communityId, userId);
+        if (communityUser == null)
+        {
+            throw new ValidationException("User is not a member of the community.");
+        }
+
+        if (communityUser.Role != CommunityRole.Administrator)
+        {
+            throw new ValidationException("Only administrators can create posts in this community.");
+        }
+
+        return await _postService.CreateAsync(userId, dto);
     }
 
     private static CommunityDto MapToDto(Community community)

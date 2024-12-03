@@ -12,4 +12,6 @@ public interface ICommunityService
     Task SubscribeAsync(Guid communityId, Guid userId);
     Task UnsubscribeAsync(Guid communityId, Guid userId);
     Task<List<CommunityUserDto>> GetUserCommunitiesAsync(Guid userId);
+    Task<bool> IsUserAdminAsync(Guid communityId, Guid userId);
+    Task<Guid> CreatePostInCommunityAsync(Guid communityId, Guid userId, CreatePostDto dto);
 }
