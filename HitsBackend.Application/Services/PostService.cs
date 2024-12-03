@@ -104,6 +104,21 @@ public class PostService : IPostService
                 }
             }
 
+            if (onlyMyCommunities)
+            {
+                if (post.CommunityId.HasValue)
+                {
+                    if (!userId.HasValue || !await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, userId.Value))
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
             bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(post.Id, userId);
             var comments = await _commentRepository.GetByPostIdAsync(post.Id);
             postDtos.Add(new PostDto(
