@@ -14,6 +14,8 @@ public class PostService : IPostService
     private readonly ITagRepository _tagRepository;
     private readonly IUserRepository _userRepository;
     private readonly ICommentRepository _commentRepository;
+    private readonly ICommunityUserRepository _communityUserRepository;
+    private readonly ICommunityRepository _communityRepository;
     
     private readonly IValidator<CreatePostDto> _postValidator;
 
@@ -22,13 +24,17 @@ public class PostService : IPostService
         ITagRepository tagRepository,
         IValidator<CreatePostDto> postValidator,
         IUserRepository userRepository,
-        ICommentRepository commentRepository)
+        ICommentRepository commentRepository,
+        ICommunityUserRepository communityUserRepository,
+        ICommunityRepository communityRepository)
     {
         _postRepository = postRepository;
         _tagRepository = tagRepository;
         _userRepository = userRepository;
         _postValidator = postValidator;
         _commentRepository = commentRepository;
+        _communityUserRepository = communityUserRepository;
+        _communityRepository = communityRepository;
     }
 
     public async Task<PostPagedListDto> GetAllAsync(
@@ -61,6 +67,11 @@ public class PostService : IPostService
         {
             throw new ValidationException("Page number must be greater than 0");
         }
+
+        if (size <= 0)
+        {
+            throw new ValidationException("Size must be greater than 0");
+        }
         
         if (tags != null && tags.Any())
         {
@@ -81,6 +92,18 @@ public class PostService : IPostService
 
         foreach (var post in posts)
         {
+            if (post.CommunityId.HasValue)
+            {
+                var community = await _communityRepository.GetByIdAsync(post.CommunityId.Value);
+                if (community?.IsClosed == true)
+                {
+                    if (!userId.HasValue || !await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, userId.Value))
+                    {
+                        continue;
+                    }
+                }
+            }
+
             bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(post.Id, userId);
             var comments = await _commentRepository.GetByPostIdAsync(post.Id);
             postDtos.Add(new PostDto(
