@@ -2,21 +2,21 @@ namespace HitsBackend.Domain.Entities;
 
 public class AsAdmHierarchy
 {
-    public required long Id { get; set; }
-    public required long ObjectId { get; set; }
-    public long? ParentObjectId { get; set; }
-    public required long ChangeId { get; set; }
-    public string? RegionCode { get; set; }
-    public string? AreaCode { get; set; }
-    public string? CityCode { get; set; }
-    public string? PlaceCode { get; set; }
-    public string? PlanCode { get; set; }
-    public string? StreetCode { get; set; }
-    public long? PrevId { get; set; }
-    public long? NextId { get; set; }
-    public required DateTime UpdateDate { get; set; }
-    public required DateTime StartDate { get; set; }
-    public required DateTime EndDate { get; set; }
-    public required int IsActive { get; set; }
-    public string? Path { get; set; }
+    public required long id { get; set; }
+    public required long objectid { get; set; }
+    public long? parentobjid { get; set; }
+    public required long changeid { get; set; }
+    public string? regioncode { get; set; }
+    public string? areacode { get; set; }
+    public string? citycode { get; set; }
+    public string? placecode { get; set; }
+    public string? plancode { get; set; }
+    public string? streetcode { get; set; }
+    public long? previd { get; set; }
+    public long? nextid { get; set; }
+    public required DateTime updatedate { get; set; }
+    public required DateTime startdate { get; set; }
+    public required DateTime enddate { get; set; }
+    public required int isactive { get; set; }
+    public string? path { get; set; }
 }
