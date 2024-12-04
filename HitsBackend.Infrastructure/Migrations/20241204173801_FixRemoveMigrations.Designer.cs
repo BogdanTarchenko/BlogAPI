@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241204154727_RemoveInactiveRowsFromHouses")]
-    partial class RemoveInactiveRowsFromHouses
+    [Migration("20241204173801_FixRemoveMigrations")]
+    partial class FixRemoveMigrations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

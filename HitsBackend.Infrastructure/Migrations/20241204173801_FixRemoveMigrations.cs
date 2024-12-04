@@ -5,14 +5,14 @@
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveInactiveRowsFromHouses : Migration
+    public partial class FixRemoveMigrations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
-                DELETE FROM fias.as_houses
-                WHERE isactive = 0 OR isactual = 0
+                DELETE FROM fias.as_addr_obj WHERE isactual = 0;
+                DELETE FROM fias.as_houses WHERE isactual = 0;
             ");
         }
 
