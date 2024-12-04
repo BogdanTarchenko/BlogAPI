@@ -19,6 +19,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<Community> Communities { get; set; }
     public DbSet<CommunityUser> CommunityUsers { get; set; }
     
+    public DbSet<AsAddrObj> AsAddrObjs { get; set; }
+    public DbSet<AsAdmHierarchy> AsAdmHierarchy { get; set; }
+    public DbSet<AsHouse> AsHouses { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -144,5 +148,9 @@ public class ApplicationDbContext : DbContext
                 .WithMany(c => c.CommunityUsers)
                 .HasForeignKey(e => e.CommunityId);
         });
+        
+        modelBuilder.Entity<AsAddrObj>().ToTable("as_addr_obj", "fias");
+        modelBuilder.Entity<AsAdmHierarchy>().ToTable("as_adm_hierarchy", "fias");
+        modelBuilder.Entity<AsHouse>().ToTable("as_houses", "fias");
     }
 }
