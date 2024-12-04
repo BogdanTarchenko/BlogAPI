@@ -6,4 +6,4 @@ public enum PostSorting
     CreateAsc,
     LikeAsc,
     LikeDesc
-} 
+}
