@@ -6,4 +6,5 @@ public interface IAddressService
 {
     Task<List<SearchAddressModel>> SearchAddressesAsync(long? parentObjectId, string query);
     Task<List<SearchAddressModel>> GetChainAsync(Guid objectGuid);
+    
 }

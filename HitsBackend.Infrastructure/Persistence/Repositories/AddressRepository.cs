@@ -172,6 +172,15 @@ public class AddressRepository : IAddressRepository
 
         return chain;
     }
+    
+    public async Task<bool> AddressExistsAsync(Guid addressId)
+    {
+        bool existsInAddrObjs = await _context.AsAddrObjs.AnyAsync(a => a.objectguid == addressId);
+        
+        bool existsInHouses = await _context.AsHouses.AnyAsync(h => h.objectguid == addressId);
+
+        return existsInAddrObjs || existsInHouses;
+    }
 
     private string BuildHouseText(AsHouse house)
     {

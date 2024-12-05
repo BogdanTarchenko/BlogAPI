@@ -1,5 +1,7 @@
 using HitsBackend.Application.Common.Interfaces;
 using HitsBackend.Application.Common.Models;
+using HitsBackend.Domain.Entities;
+using HitsBackend.Application.Common.Exceptions;
 
 namespace HitsBackend.Application.Services;
 
@@ -19,6 +21,12 @@ public class AddressService : IAddressService
 
     public async Task<List<SearchAddressModel>> GetChainAsync(Guid objectGuid)
     {
+        bool addressExists = await _addressRepository.AddressExistsAsync(objectGuid);
+        if (!addressExists)
+        {
+            throw new ValidationException("The specified address does not exist.");
+        }
+
         return await _addressRepository.GetChainAsync(objectGuid);
     }
 }

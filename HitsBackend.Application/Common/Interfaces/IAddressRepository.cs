@@ -6,4 +6,5 @@ public interface IAddressRepository
 {
     Task<List<SearchAddressModel>> SearchAddressesAsync(long? parentObjectId, string query);
     Task<List<SearchAddressModel>> GetChainAsync(Guid objectGuid);
+    Task<bool> AddressExistsAsync(Guid addressId);
 }
