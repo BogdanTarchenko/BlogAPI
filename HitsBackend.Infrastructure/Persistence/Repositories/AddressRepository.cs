@@ -18,6 +18,8 @@ public class AddressRepository : IAddressRepository
 
     public async Task<List<SearchAddressModel>> SearchAddressesAsync(long? parentObjectId, string query)
     {
+        var lowerQuery = query?.ToLower();
+        
         var defaultResult = new List<SearchAddressModel>
         {
             new SearchAddressModel(
@@ -31,9 +33,9 @@ public class AddressRepository : IAddressRepository
         
         if (!parentObjectId.HasValue)
         {
-            return string.IsNullOrEmpty(query)
+            return string.IsNullOrEmpty(lowerQuery)
                 ? defaultResult
-                : defaultResult.Where(d => d.Text.Contains(query)).ToList();
+                : defaultResult.Where(d => d.Text!.ToLower().Contains(lowerQuery)).ToList();
         }
 
         var addresses = new List<SearchAddressModel>();
@@ -45,7 +47,7 @@ public class AddressRepository : IAddressRepository
         foreach (var entry in hierarchyEntries)
         {
             var addrObjects = await _context.AsAddrObjs
-                .Where(a => a.objectid == entry.objectid && (string.IsNullOrEmpty(query) || a.name.Contains(query)))
+                .Where(a => a.objectid == entry.objectid)
                 .ToListAsync();
 
             addresses.AddRange(addrObjects.Select(a => new SearchAddressModel(
@@ -56,7 +58,7 @@ public class AddressRepository : IAddressRepository
                 GetLevelText(level - 1))));
             
             var houseObjects = await _context.AsHouses
-                .Where(h => h.objectid == entry.objectid && (string.IsNullOrEmpty(query) || (h.housenum != null && h.housenum.Contains(query))))
+                .Where(h => h.objectid == entry.objectid)
                 .ToListAsync();
 
             addresses.AddRange(houseObjects.Select(h => new SearchAddressModel(
@@ -65,6 +67,11 @@ public class AddressRepository : IAddressRepository
                 BuildHouseText(h),
                 GarAddressLevel.Building,
                 "Здание (сооружение)")));
+        }
+        
+        if (!string.IsNullOrEmpty(lowerQuery))
+        {
+            addresses = addresses.Where(a => a.Text.ToLower().Contains(lowerQuery)).ToList();
         }
         
         return addresses.OrderBy(a => a.Text).ToList();
