@@ -26,12 +26,6 @@ public class CommunityRepository : ICommunityRepository
         return await _context.Communities.ToListAsync();
     }
 
-    public async Task AddAsync(Community community)
-    {
-        await _context.Communities.AddAsync(community);
-        await _context.SaveChangesAsync();
-    }
-
     public async Task UpdateAsync(Community community)
     {
         _context.Communities.Update(community);

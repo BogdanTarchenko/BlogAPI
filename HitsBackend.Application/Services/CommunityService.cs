@@ -64,24 +64,6 @@ public class CommunityService : ICommunityService
         return communities.Select(MapToDto).ToList();
     }
 
-    public async Task CreateCommunityAsync(CommunityDto communityDto)
-    {
-        var community = MapToEntity(communityDto);
-        await _communityRepository.AddAsync(community);
-    }
-
-    public async Task UpdateCommunityAsync(Guid id, CommunityDto communityDto)
-    {
-        var community = await _communityRepository.GetByIdAsync(id);
-        if (community == null)
-        {
-            throw new NotFoundException(nameof(Community), id);
-        }
-
-        UpdateEntityFromDto(community, communityDto);
-        await _communityRepository.UpdateAsync(community);
-    }
-
     public async Task SubscribeAsync(Guid communityId, Guid userId)
     {
         var community = await _communityRepository.GetByIdAsync(communityId);
@@ -137,12 +119,6 @@ public class CommunityService : ICommunityService
             Role = uc.Role,
             UserId = userId
         }).ToList();
-    }
-
-    public async Task<bool> IsUserAdminAsync(Guid communityId, Guid userId)
-    {
-        var communityUser = await _communityUserRepository.GetCommunityUserAsync(communityId, userId);
-        return communityUser != null && communityUser.Role == CommunityRole.Administrator;
     }
 
     public async Task<Guid> CreatePostInCommunityAsync(Guid communityId, Guid userId, CreatePostDto dto)
@@ -226,26 +202,5 @@ public class CommunityService : ICommunityService
             IsClosed = community.IsClosed,
             SubscribersCount = community.SubscribersCount
         };
-    }
-
-    private static Community MapToEntity(CommunityDto communityDto)
-    {
-        return new Community
-        {
-            Id = communityDto.Id,
-            CreateTime = communityDto.CreateTime,
-            Name = communityDto.Name,
-            Description = communityDto.Description,
-            IsClosed = communityDto.IsClosed,
-            SubscribersCount = communityDto.SubscribersCount
-        };
-    }
-
-    private static void UpdateEntityFromDto(Community community, CommunityDto communityDto)
-    {
-        community.Name = communityDto.Name;
-        community.Description = communityDto.Description;
-        community.IsClosed = communityDto.IsClosed;
-        community.SubscribersCount = communityDto.SubscribersCount;
     }
 }
