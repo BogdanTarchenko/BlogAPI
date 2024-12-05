@@ -3,6 +3,7 @@ using HitsBackend.Application.Common.Exceptions;
 using HitsBackend.Application.Common.Interfaces;
 using HitsBackend.Application.Common.Models;
 using HitsBackend.Domain.Entities;
+using ValidationException = HitsBackend.Application.Common.Exceptions.ValidationException;
 
 namespace HitsBackend.Application.Services;
 
@@ -91,6 +92,11 @@ public class CommentService : ICommentService
         if (comment == null)
         {
             throw new NotFoundException(nameof(Comment), id);
+        }
+
+        if (comment.ParentCommentId != null)
+        {
+            throw new ValidationException("Can't get comment tree for a reply comment.");
         }
 
         var replies = await _commentRepository.GetRepliesAsync(id);
