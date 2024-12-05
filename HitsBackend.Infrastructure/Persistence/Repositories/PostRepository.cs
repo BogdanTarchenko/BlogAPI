@@ -180,4 +180,13 @@ public class PostRepository : IPostRepository
 
         return (posts, totalCount);
     }
+
+    public async Task<bool> AddressExistsAsync(Guid addressId)
+    {
+        bool existsInAddrObjs = await _context.AsAddrObjs.AnyAsync(a => a.objectguid == addressId);
+        
+        bool existsInHouses = await _context.AsHouses.AnyAsync(h => h.objectguid == addressId);
+
+        return existsInAddrObjs || existsInHouses;
+    }
 } 

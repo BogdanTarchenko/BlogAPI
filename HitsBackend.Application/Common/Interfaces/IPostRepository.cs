@@ -27,4 +27,5 @@ public interface IPostRepository
     Task AddLikeAsync(Guid postId, Guid userId);
     Task RemoveLikeAsync(Guid postId, Guid userId);
     Task<bool> HasUserLikedPostAsync(Guid postId, Guid? userId);
+    Task<bool> AddressExistsAsync(Guid addressId);
 } 

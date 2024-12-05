@@ -189,6 +189,15 @@ public class PostService : IPostService
         var user = await _userRepository.GetByIdAsync(userId) 
             ?? throw new NotFoundException(nameof(User), userId);
 
+        if (dto.AddressId.HasValue)
+        {
+            var addressExists = await _postRepository.AddressExistsAsync(dto.AddressId.Value);
+            if (!addressExists)
+            {
+                throw new ValidationException("The specified address does not exist.");
+            }
+        }
+
         var existingTags = await _tagRepository.GetAllAsync();
         var validTagIds = existingTags.Select(t => t.Id).ToList();
         if (dto.Tags.Any(t => !validTagIds.Contains(t)))
@@ -232,6 +241,15 @@ public class PostService : IPostService
     {
         var post = await _postRepository.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Post), id);
+
+        if (post.AddressId.HasValue)
+        {
+            var addressExists = await _postRepository.AddressExistsAsync(post.AddressId.Value);
+            if (!addressExists)
+            {
+                throw new ValidationException("The specified address does not exist.");
+            }
+        }
 
         if (post.CommunityId.HasValue)
         {
