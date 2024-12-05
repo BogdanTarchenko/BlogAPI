@@ -63,6 +63,11 @@ public class PostRepository : IPostRepository
         };
 
         var totalCount = await query.CountAsync();
+        
+        if (totalCount == 0)
+        {
+            return (new List<Post>(), 0);
+        }
 
         var posts = await query
             .Skip((page - 1) * size)
@@ -162,6 +167,12 @@ public class PostRepository : IPostRepository
         };
 
         var totalCount = await query.CountAsync();
+        
+        if (totalCount == 0)
+        {
+            return (new List<Post>(), 0);
+        }
+        
         var posts = await query
             .Skip((page - 1) * size)
             .Take(size)

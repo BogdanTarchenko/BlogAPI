@@ -87,6 +87,20 @@ public class PostService : IPostService
 
         var (posts, totalCount) = await _postRepository.GetAllAsync(
             tags, author, min, max, sorting, onlyMyCommunities, page, size);
+        
+        if (totalCount == 0)
+        {
+            return new PostPagedListDto
+            {
+                Posts = new List<PostDto>(),
+                Pagination = new PageInfoModel
+                {
+                    Size = size,
+                    Count = 0,
+                    Current = page
+                }
+            };
+        }
 
         var totalPages = (int)Math.Ceiling((double)totalCount / size);
 
@@ -336,6 +350,20 @@ public class PostService : IPostService
     {
         var (posts, totalCount) = await _postRepository.GetAllByCommunityIdAsync(
             communityId, tags, sorting, page, size);
+        
+        if (totalCount == 0)
+        {
+            return new PostPagedListDto
+            {
+                Posts = new List<PostDto>(),
+                Pagination = new PageInfoModel
+                {
+                    Size = size,
+                    Count = 0,
+                    Current = page
+                }
+            };
+        }
 
         var totalPages = (int)Math.Ceiling((double)totalCount / size);
 
