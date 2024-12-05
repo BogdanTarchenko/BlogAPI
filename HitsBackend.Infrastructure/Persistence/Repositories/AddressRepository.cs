@@ -10,10 +10,12 @@ namespace Infrastructure.Persistence.Repositories;
 public class AddressRepository : IAddressRepository
 {
     private readonly ApplicationDbContext _context;
+    private Dictionary<long, List<SearchAddressModel>> _addressCache;
 
     public AddressRepository(ApplicationDbContext context)
     {
         _context = context;
+        _addressCache = new Dictionary<long, List<SearchAddressModel>>();
     }
 
     public async Task<List<SearchAddressModel>> SearchAddressesAsync(long? parentObjectId, string query)
@@ -38,43 +40,50 @@ public class AddressRepository : IAddressRepository
                 : defaultResult.Where(d => d.Text!.ToLower().Contains(lowerQuery)).ToList();
         }
 
-        var addresses = new List<SearchAddressModel>();
-        
-        var hierarchyEntries = await _context.AsAdmHierarchy
-            .Where(h => h.parentobjid == parentObjectId.Value)
-            .ToListAsync();
-
-        foreach (var entry in hierarchyEntries)
+        if (!_addressCache.ContainsKey(parentObjectId.Value))
         {
-            var addrObjects = await _context.AsAddrObjs
-                .Where(a => a.objectid == entry.objectid)
+            var hierarchyEntries = await _context.AsAdmHierarchy
+                .Where(h => h.parentobjid == parentObjectId.Value)
                 .ToListAsync();
 
-            addresses.AddRange(addrObjects.Select(a => new SearchAddressModel(
-                a.objectid,
-                a.objectguid,
-                $"{a.typename} {a.name}",
-                Enum.TryParse<GarAddressLevel>(a.level, out var level) ? level - 1 : GarAddressLevel.Region,
-                GetLevelText(level - 1))));
-            
-            var houseObjects = await _context.AsHouses
-                .Where(h => h.objectid == entry.objectid)
-                .ToListAsync();
+            var addresses = new List<SearchAddressModel>();
 
-            addresses.AddRange(houseObjects.Select(h => new SearchAddressModel(
-                h.objectid,
-                h.objectguid,
-                BuildHouseText(h),
-                GarAddressLevel.Building,
-                "Здание (сооружение)")));
+            foreach (var entry in hierarchyEntries)
+            {
+                var addrObjects = await _context.AsAddrObjs
+                    .Where(a => a.objectid == entry.objectid)
+                    .ToListAsync();
+
+                addresses.AddRange(addrObjects.Select(a => new SearchAddressModel(
+                    a.objectid,
+                    a.objectguid,
+                    $"{a.typename} {a.name}",
+                    Enum.TryParse<GarAddressLevel>(a.level, out var level) ? level - 1 : GarAddressLevel.Region,
+                    GetLevelText(level - 1))));
+                
+                var houseObjects = await _context.AsHouses
+                    .Where(h => h.objectid == entry.objectid)
+                    .ToListAsync();
+
+                addresses.AddRange(houseObjects.Select(h => new SearchAddressModel(
+                    h.objectid,
+                    h.objectguid,
+                    BuildHouseText(h),
+                    GarAddressLevel.Building,
+                    "Здание (сооружение)")));
+            }
+
+            _addressCache[parentObjectId.Value] = addresses;
         }
-        
+
+        var addressesFromCache = _addressCache[parentObjectId.Value];
+
         if (!string.IsNullOrEmpty(lowerQuery))
         {
-            addresses = addresses.Where(a => a.Text.ToLower().Contains(lowerQuery)).ToList();
+            addressesFromCache = addressesFromCache.Where(a => a.Text.ToLower().Contains(lowerQuery)).ToList();
         }
-        
-        return addresses.OrderBy(a => a.Text).ToList();
+
+        return addressesFromCache.OrderBy(a => a.Text).ToList();
     }
 
     public async Task<List<SearchAddressModel>> GetChainAsync(Guid objectGuid)
