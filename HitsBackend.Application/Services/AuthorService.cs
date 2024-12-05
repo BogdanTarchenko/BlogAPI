@@ -26,6 +26,7 @@ namespace HitsBackend.Application.Services;
                     Likes = u.LikesCount,
                     Created = u.CreateTime
                 })
+                .OrderBy(a => a.FullName)
                 .ToList();
         }
     }
