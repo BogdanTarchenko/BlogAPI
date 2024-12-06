@@ -119,6 +119,8 @@ builder.Services.AddScoped<ICommunityUserRepository, CommunityUserRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 
+builder.Services.AddSingleton<EmailService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

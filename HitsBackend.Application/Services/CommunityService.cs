@@ -6,20 +6,22 @@ using HitsBackend.Domain.Enums;
 
 namespace HitsBackend.Application.Services;
 
-public class CommunityService : ICommunityService
+public class  CommunityService : ICommunityService
 {
     private readonly ICommunityRepository _communityRepository;
     private readonly ICommunityUserRepository _communityUserRepository;
     private readonly IPostService _postService;
     private readonly ITagRepository _tagRepository;
+    private readonly EmailService _emailService;
 
     public CommunityService(ICommunityRepository communityRepository, ICommunityUserRepository communityUserRepository,
-        IPostService postService, ITagRepository tagRepository)
+        IPostService postService, ITagRepository tagRepository, EmailService emailService)
     {
         _communityRepository = communityRepository;
         _communityUserRepository = communityUserRepository;
         _postService = postService;
         _tagRepository = tagRepository;
+        _emailService = emailService;
     }
 
     public async Task<CommunityFullDto?> GetCommunityByIdAsync(Guid id)
@@ -140,7 +142,20 @@ public class CommunityService : ICommunityService
             throw new NotFoundException(nameof(Community), communityId);
         }
 
-        return await _postService.CreateAsync(userId, dto, communityId, community.Name);
+        var postId = await _postService.CreateAsync(userId, dto, communityId, community.Name);
+
+        var subscribers = await _communityUserRepository.GetCommunityUsersAsync(communityId);
+        var subscriberEmails = subscribers.Select(s => s.User.Email).ToList();
+
+        var subject = "New post: " + dto.Title;
+        var body = $"<h1>{dto.Title}</h1><p>{dto.Description}</p>";
+
+        foreach (var email in subscriberEmails)
+        {
+            await _emailService.SendEmailAsync(email, subject, body);
+        }
+
+        return postId;
     }
 
     public async Task<CommunityRole?> GetUserRoleInCommunityAsync(Guid communityId, Guid userId)
