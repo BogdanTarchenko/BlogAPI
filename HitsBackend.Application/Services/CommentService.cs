@@ -141,6 +141,11 @@ public class CommentService : ICommentService
             {
                 throw new NotFoundException(nameof(Comment), dto.ParentId.Value);
             }
+
+            if (parentComment.IsDeleted)
+            {
+                throw new ForbiddenException("Cannot reply to a deleted comment.");
+            }
         }
 
         var comment = new Comment
