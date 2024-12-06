@@ -45,7 +45,7 @@ public class CommentService : ICommentService
         if (comment.Replies.Any())
         {
             comment.IsDeleted = true;
-            comment.Content = null;
+            comment.Content = string.Empty;
             comment.DeleteDate = DateTime.UtcNow;
             await _commentRepository.UpdateAsync(comment);
         }
