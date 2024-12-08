@@ -25,7 +25,7 @@ public class CommentRepository : ICommentRepository
     public async Task<List<Comment>> GetByPostIdAsync(Guid postId)
     {
         return await _context.Comments
-            .Where(c => c.PostId == postId && !c.IsDeleted)
+            .Where(c => c.PostId == postId)
             .Include(c => c.Author)
             .ToListAsync();
     }
