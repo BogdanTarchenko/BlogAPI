@@ -21,10 +21,10 @@ public class CommentController : ControllerBase
     /// Get all nested comments(replies)
     /// </summary>
     [HttpGet("comment/{id:guid}/tree")]
-    public async Task<ActionResult<List<CommentDto>>> GetCommentTree(Guid id)
+    public async Task<IActionResult> GetCommentTree(Guid id)
     {
-        var comments = await _commentService.GetCommentTreeAsync(id);
-        return Ok(comments);
+        var commentTree = await _commentService.GetCommentTreeAsync(id);
+        return Ok(commentTree);
     }
 
     /// <summary>

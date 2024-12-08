@@ -30,6 +30,13 @@ public class CommentRepository : ICommentRepository
             .ToListAsync();
     }
 
+    public async Task<List<Comment>> GetAllByPostIdAsync(Guid postId)
+    {
+        return await _context.Comments
+            .Where(c => c.PostId == postId)
+            .ToListAsync();
+    }
+
     public async Task CreateAsync(Comment comment)
     {
         _context.Comments.Add(comment);
@@ -61,13 +68,5 @@ public class CommentRepository : ICommentRepository
     {
         _context.Comments.Update(comment);
         await _context.SaveChangesAsync();
-    }
-
-    public async Task<List<Comment>> GetRepliesAsync(Guid parentId)
-    {
-        return await _context.Comments
-            .Where(c => c.ParentCommentId == parentId && !c.IsDeleted)
-            .Include(c => c.Author)
-            .ToListAsync();
     }
 }

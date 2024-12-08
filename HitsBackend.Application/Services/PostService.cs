@@ -266,6 +266,8 @@ public class PostService : IPostService
         bool hasLike = userId.HasValue && await _postRepository.HasUserLikedPostAsync(id, userId);
         var comments = await _commentRepository.GetByPostIdAsync(id);
 
+        var rootComments = comments.Where(c => !c.ParentCommentId.HasValue).ToList();
+
         return new PostFullDto(
             Id: post.Id,
             CreateTime: post.CreateTime,
@@ -287,7 +289,7 @@ public class PostService : IPostService
                 Name = pt.Tag.Name,
                 CreateTime = pt.Tag.CreateTime
             }).ToList(),
-            Comments: comments.Select(c => new CommentDto(
+            Comments: rootComments.Select(c => new CommentDto(
                 Id: c.Id,
                 CreateTime: c.CreateTime,
                 Content: c.Content,

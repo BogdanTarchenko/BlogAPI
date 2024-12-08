@@ -86,38 +86,47 @@ public class CommentService : ICommentService
         await _commentRepository.UpdateAsync(comment);
     }
 
-    public async Task<List<CommentDto>> GetCommentTreeAsync(Guid id)
+    public async Task<List<CommentDto>> GetCommentTreeAsync(Guid rootCommentId)
     {
-        var comment = await _commentRepository.GetByIdAsync(id);
-        if (comment == null)
+        var rootComment = await _commentRepository.GetByIdAsync(rootCommentId);
+        if (rootComment == null)
         {
-            throw new NotFoundException(nameof(Comment), id);
+            throw new NotFoundException(nameof(Comment), rootCommentId);
         }
 
-        if (comment.ParentCommentId != null)
+        if (rootComment.ParentCommentId != null)
         {
             throw new ValidationException("Can't get comment tree for a reply comment.");
         }
 
-        var replies = await _commentRepository.GetRepliesAsync(id);
+        var allComments = await _commentRepository.GetAllByPostIdAsync(rootComment.PostId);
 
-        var commentDtos = new List<CommentDto>();
-        foreach (var reply in replies)
+        List<CommentDto> BuildFlatList(Guid? parentId)
         {
-            var subReplies = await _commentRepository.GetRepliesAsync(reply.Id);
-            commentDtos.Add(new CommentDto(
-                Id: reply.Id,
-                CreateTime: reply.CreateTime,
-                Content: reply.Content,
-                ModifiedDate: reply.ModifiedDate,
-                DeleteDate: reply.DeleteDate,
-                AuthorId: reply.AuthorId,
-                Author: reply.Author.FullName,
-                SubComments: subReplies.Count
-            ));
+            var directChildren = allComments
+                .Where(c => c.ParentCommentId == parentId)
+                .Select(c => new CommentDto(
+                    Id: c.Id,
+                    CreateTime: c.CreateTime,
+                    Content: c.Content,
+                    ModifiedDate: c.ModifiedDate,
+                    DeleteDate: c.DeleteDate,
+                    AuthorId: c.AuthorId,
+                    Author: c.Author.FullName,
+                    SubComments: allComments.Count(x => x.ParentCommentId == c.Id)
+                )).ToList();
+            
+            var allDescendants = new List<CommentDto>();
+            foreach (var comment in directChildren)
+            {
+                allDescendants.Add(comment);
+                allDescendants.AddRange(BuildFlatList(comment.Id));
+            }
+
+            return allDescendants;
         }
 
-        return commentDtos;
+        return BuildFlatList(rootCommentId);
     }
 
     public async Task AddCommentToPostAsync(Guid postId, CreateCommentDto dto, Guid authorId)
