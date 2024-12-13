@@ -11,15 +11,19 @@ public class CommentService : ICommentService
 {
     private readonly ICommentRepository _commentRepository;
     private readonly IPostRepository _postRepository;
+    private readonly ICommunityRepository _communityRepository;
+    private readonly ICommunityUserRepository _communityUserRepository;
     
     private readonly IValidator<CreateCommentDto> _createCommentValidator;
     private readonly IValidator<UpdateCommentDto> _updateCommentValidator;
 
-    public CommentService(ICommentRepository commentRepository, IPostRepository postRepository,
+    public CommentService(ICommentRepository commentRepository, IPostRepository postRepository, ICommunityRepository communityRepository, ICommunityUserRepository communityUserRepository,
         IValidator<CreateCommentDto> createCommentValidator, IValidator<UpdateCommentDto> updateCommentValidator)
     {
         _commentRepository = commentRepository;
         _postRepository = postRepository;
+        _communityRepository = communityRepository;
+        _communityUserRepository = communityUserRepository;
         _createCommentValidator = createCommentValidator;
         _updateCommentValidator = updateCommentValidator;
     }
@@ -30,6 +34,16 @@ public class CommentService : ICommentService
         if (comment == null)
         {
             throw new NotFoundException(nameof(Comment), id);
+        }
+        
+        var post = await _postRepository.GetByIdAsync(comment.PostId);
+        if (post.CommunityId.HasValue)
+        {
+            var community = await _communityRepository.GetByIdAsync(post.CommunityId.Value);
+            if (community?.IsClosed == true && (!await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, userId)))
+            {
+                throw new ForbiddenException("Access to this comment is restricted.");
+            }
         }
 
         if (comment.AuthorId != userId)
@@ -68,6 +82,16 @@ public class CommentService : ICommentService
         {
             throw new NotFoundException(nameof(Comment), id);
         }
+        
+        var post = await _postRepository.GetByIdAsync(comment.PostId);
+        if (post.CommunityId.HasValue)
+        {
+            var community = await _communityRepository.GetByIdAsync(post.CommunityId.Value);
+            if (community?.IsClosed == true && (!await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, userId)))
+            {
+                throw new ForbiddenException("Access to this comment is restricted.");
+            }
+        }
 
         if (comment.AuthorId != userId)
         {
@@ -86,12 +110,22 @@ public class CommentService : ICommentService
         await _commentRepository.UpdateAsync(comment);
     }
 
-    public async Task<List<CommentDto>> GetCommentTreeAsync(Guid rootCommentId)
+    public async Task<List<CommentDto>> GetCommentTreeAsync(Guid rootCommentId, Guid? userId)
     {
         var rootComment = await _commentRepository.GetByIdAsync(rootCommentId);
         if (rootComment == null)
         {
             throw new NotFoundException(nameof(Comment), rootCommentId);
+        }
+
+        var post = await _postRepository.GetByIdAsync(rootComment.PostId);
+        if (post.CommunityId.HasValue)
+        {
+            var community = await _communityRepository.GetByIdAsync(post.CommunityId.Value);
+            if (community?.IsClosed == true && (!userId.HasValue || !await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, userId.Value)))
+            {
+                throw new ForbiddenException("Access to this comment tree is restricted.");
+            }
         }
 
         if (rootComment.ParentCommentId != null)
@@ -141,6 +175,15 @@ public class CommentService : ICommentService
         if (post == null)
         {
             throw new NotFoundException(nameof(Post), postId);
+        }
+
+        if (post.CommunityId.HasValue)
+        {
+            var community = await _communityRepository.GetByIdAsync(post.CommunityId.Value);
+            if (community?.IsClosed == true && !await _communityUserRepository.IsUserSubscribedAsync(post.CommunityId.Value, authorId))
+            {
+                throw new ForbiddenException("You do not have permission to comment in this closed community.");
+            }
         }
 
         if (dto.ParentId.HasValue)

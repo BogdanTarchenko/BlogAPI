@@ -20,10 +20,20 @@ public class CommentController : ControllerBase
     /// <summary>
     /// Get all nested comments(replies)
     /// </summary>
+    [Authorize]
+    [AllowAnonymous]
     [HttpGet("comment/{id:guid}/tree")]
     public async Task<IActionResult> GetCommentTree(Guid id)
     {
-        var commentTree = await _commentService.GetCommentTreeAsync(id);
+        Guid? userId = null;
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrEmpty(userIdClaim))
+        {
+            userId = Guid.Parse(userIdClaim);
+        }
+        
+        var commentTree = await _commentService.GetCommentTreeAsync(id, userId);
         return Ok(commentTree);
     }
 
